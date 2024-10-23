@@ -7,21 +7,21 @@ m3 = int(input('Marks in sub3: '))
 total = m1+m2+m3
 perc = int((total/300)*100)
 
-print = ('Name: ',stdn)
-print= ('USN: ',usn)
-print= ('Sub1:',m1)
-print= ('Sub2: ',m2)
-print= ('SUb3: ', m3)
-print= ('Total: ',total)
-print= ('Percentage:', perc)
+print ('Name: ',stdn)
+print ('USN: ',usn)
+print ('Sub1:',m1)
+print ('Sub2: ',m2)
+print ('SUb3: ', m3)
+print ('Total: ',total)
+print ('Percentage:', perc)
 
 if perc>=90:
     print ('First class ex')
-elif perc>=75 and perc<90:
+elif perc>=75: 
     print('First class dis')
-elif perc>=60 and perc<75:
+elif perc>=60:
     print('First class')
-elif perc>=35 and perc<60:
+elif perc>=35: 
     print('Second class')
 else:
     print('Fail')
