@@ -25,3 +25,5 @@ elif perc>=35:
     print('Second class')
 else:
     print('pass')
+    
+print("Hellooo ")
