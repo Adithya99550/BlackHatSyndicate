@@ -24,4 +24,4 @@ elif perc>=60:
 elif perc>=35: 
     print('Second class')
 else:
-    print('Fail')
+    print('pass')
