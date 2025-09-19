@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translation Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="p-8">
+    <h1 class="text-2xl font-bold mb-4">Translation Test</h1>
+    
+    <div class="space-y-4">
+        <div>
+            <h2 class="text-lg font-semibold">English:</h2>
+            <p data-translate="app-name">App Name</p>
+            <p data-translate="tagline">Tagline</p>
+            <p data-translate="welcome">Welcome</p>
+        </div>
+        
+        <div>
+            <h2 class="text-lg font-semibold">Kannada:</h2>
+            <p id="kn-app-name">App Name</p>
+            <p id="kn-tagline">Tagline</p>
+            <p id="kn-welcome">Welcome</p>
+        </div>
+        
+        <button id="testBtn" class="px-4 py-2 bg-blue-500 text-white rounded">Test Translation</button>
+    </div>
+    
+    <script type="module">
+        import { translate, updateUI } from './utils.js';
+        
+        document.getElementById('testBtn').addEventListener('click', () => {
+            // Test English
+            updateUI('en');
+            
+            // Test Kannada
+            document.getElementById('kn-app-name').textContent = translate('app-name', 'kn');
+            document.getElementById('kn-tagline').textContent = translate('tagline', 'kn');
+            document.getElementById('kn-welcome').textContent = translate('welcome', 'kn');
+        });
+        
+        // Initial load
+        updateUI('en');
+    </script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module Test</title>
+</head>
+<body>
+    <h1>Module Test</h1>
+    <div id="result">Testing modules...</div>
+    
+    <script type="module">
+        try {
+            // Test importing modules
+            const { translations } = await import('./translations.js');
+            const { recommendations } = await import('./data.js');
+            const { translate } = await import('./utils.js');
+            
+            document.getElementById('result').innerHTML = `
+                <h2>✅ Modules loaded successfully!</h2>
+                <p>Translations: ${Object.keys(translations).length} languages</p>
+                <p>Recommendations: ${Object.keys(recommendations).length} crops</p>
+                <p>Sample translation: ${translate('app-name', 'en')}</p>
+            `;
+        } catch (error) {
+            document.getElementById('result').innerHTML = `
+                <h2>❌ Module loading failed</h2>
+                <p>Error: ${error.message}</p>
+                <p>Make sure you're running this from a web server (http://localhost:8000/test-modules.html)</p>
+            `;
+        }
+    </script>
+</body>
+</html>

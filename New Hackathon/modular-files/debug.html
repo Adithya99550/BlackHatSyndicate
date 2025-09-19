@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - AgriPredict AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="p-8">
+    <h1 class="text-2xl font-bold mb-4">Debug - AgriPredict AI Modules</h1>
+    
+    <div id="debug-output" class="space-y-4">
+        <div class="p-4 bg-gray-100 rounded">Testing modules...</div>
+    </div>
+    
+    <script type="module">
+        const output = document.getElementById('debug-output');
+        
+        function addLog(message, type = 'info') {
+            const colors = {
+                info: 'bg-blue-100 text-blue-800',
+                success: 'bg-green-100 text-green-800',
+                error: 'bg-red-100 text-red-800'
+            };
+            const div = document.createElement('div');
+            div.className = `p-4 rounded ${colors[type]}`;
+            div.textContent = message;
+            output.appendChild(div);
+        }
+        
+        try {
+            addLog('Starting module tests...', 'info');
+            
+            // Test translations
+            const { translations } = await import('./translations.js');
+            addLog(`✅ Translations loaded: ${Object.keys(translations).length} languages`, 'success');
+            
+            // Test data
+            const { recommendations, priceData } = await import('./data.js');
+            addLog(`✅ Data loaded: ${Object.keys(recommendations).length} crops`, 'success');
+            
+            // Test utils
+            const { translate, updateUI } = await import('./utils.js');
+            addLog(`✅ Utils loaded: translate function available`, 'success');
+            
+            // Test forecasting
+            const { forecastWithProphet } = await import('./forecasting.js');
+            addLog(`✅ Forecasting loaded: forecastWithProphet function available`, 'success');
+            
+            // Test recommendation
+            const { calculateCropRecommendation, displayRecommendation } = await import('./recommendation.js');
+            addLog(`✅ Recommendation loaded: functions available`, 'success');
+            
+            // Test translation
+            const testTranslation = translate('app-name', 'en');
+            addLog(`✅ Translation test: "${testTranslation}"`, 'success');
+            
+            // Test recommendation calculation
+            addLog('Testing recommendation calculation...', 'info');
+            const recs = await calculateCropRecommendation();
+            addLog(`✅ Recommendations calculated: ${recs.length} crops`, 'success');
+            
+            if (recs.length > 0) {
+                const best = recs[0];
+                addLog(`Best crop: ${best.crop} (Profit: ₹${Math.round(best.expectedProfit)})`, 'success');
+            }
+            
+            addLog('All tests passed! 🎉', 'success');
+            
+        } catch (error) {
+            addLog(`❌ Error: ${error.message}`, 'error');
+            console.error('Debug error:', error);
+        }
+    </script>
+</body>
+</html>

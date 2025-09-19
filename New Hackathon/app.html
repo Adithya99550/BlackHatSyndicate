@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriPredict AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prophet-js@latest/dist/prophet.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-100 antialiased text-gray-800">
+
+    <div class="flex flex-col min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-sm p-6 sticky top-0 z-50">
+            <div class="container mx-auto header-container">
+                <!-- Left side - Language selector -->
+                <div class="header-left">
+                    <div class="relative group">
+                        <button id="languageButton" class="flex items-center space-x-2 px-3 py-2 rounded-lg border border-gray-300 hover:border-custom-green hover:bg-gray-50 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+                            </svg>
+                            <span id="currentLanguage" class="text-sm font-medium text-gray-700">English</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                        </button>
+                        <div id="languageDropdown" class="absolute left-0 mt-2 w-32 bg-white rounded-md shadow-lg py-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <button class="language-option w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-lang="en">English</button>
+                            <button class="language-option w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-lang="kn">ಕನ್ನಡ</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Centered Logo and Name -->
+                <div class="header-center">
+                    <div class="header-logo-name">
+                        <div class="logo-container">
+                            <!-- Custom logo image -->
+                            <img src="logo.png" alt="AgriPredict AI Logo" class="logo-image" />
+                            <!-- Fallback text if image doesn't load -->
+                            <span class="logo-text-fallback" data-translate="app-name">
+                                AgriPredict <span class="text-logo-green">AI</span>
+                            </span>
+                        </div>
+                    </div>
+                    <p class="header-tagline" data-translate="tagline">Insights That Empower Every Farmer</p>
+                </div>
+                
+                <!-- Right side actions -->
+                <div class="header-actions">
+                    <button class="notification-bell text-gray-600 hover:text-custom-green transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell">
+                            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                        </svg>
+                    </button>
+                    <div class="relative group">
+                        <button class="profile-button p-1 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors focus:outline-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user">
+                                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                            </svg>
+                        </button>
+                        <div class="profile-dropdown absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign out</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container mx-auto flex-1 p-4 lg:p-8">
+            <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-6" data-translate="dashboard">Dashboard</h1>
+            
+            <!-- Welcome Banner -->
+            <div class="bg-white rounded-xl shadow-md p-6 lg:p-8 mb-8 flex flex-col md:flex-row items-center justify-between shadow-green-light">
+                <div class="flex items-center space-x-4 mb-4 md:mb-0">
+                    <div class="flex-shrink-0">
+                        <svg class="h-16 w-16" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Single realistic leaf -->
+                            <g class="welcome-leaf">
+                                <!-- Main leaf body -->
+                                <path d="M40 15 Q30 20 25 35 Q20 50 30 60 Q40 65 50 60 Q60 50 55 35 Q50 20 40 15 Z" 
+                                      fill="#22C55E" 
+                                      stroke="#16A34A" 
+                                      stroke-width="1" />
+                                <!-- Leaf veins -->
+                                <path d="M40 15 L40 60" stroke="#16A34A" stroke-width="1.5" fill="none" />
+                                <path d="M40 25 Q35 30 30 35" stroke="#16A34A" stroke-width="1" fill="none" />
+                                <path d="M40 25 Q45 30 50 35" stroke="#16A34A" stroke-width="1" fill="none" />
+                                <path d="M40 35 Q35 40 30 45" stroke="#16A34A" stroke-width="1" fill="none" />
+                                <path d="M40 35 Q45 40 50 45" stroke="#16A34A" stroke-width="1" fill="none" />
+                                <path d="M40 45 Q35 50 30 55" stroke="#16A34A" stroke-width="1" fill="none" />
+                                <path d="M40 45 Q45 50 50 55" stroke="#16A34A" stroke-width="1" fill="none" />
+                                <!-- Leaf stem -->
+                                <path d="M40 60 L40 70" stroke="#8B4513" stroke-width="3" fill="none" />
+                            </g>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-semibold" data-translate="welcome">Welcome, Farmer!</h2>
+                        <p class="text-gray-600 mt-1" data-translate="welcome-subtitle">Here is your personalized forecast to help you plan ahead.</p>
+                    </div>
+                </div>
+                <div class="w-full md:w-auto">
+                    <button class="w-full md:w-auto px-6 py-3 bg-custom-green text-white rounded-full font-semibold hover:bg-green-600 transition-colors shadow-lg" data-translate="view-full-report">
+                        View Full Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- AI Crop Recommendation Section -->
+            <section class="mb-8">
+                <div class="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl shadow-xl p-8 text-white">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-3 bg-white bg-opacity-20 rounded-full">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold" data-translate="ai-recommendation">AI Crop Recommendation</h2>
+                                <p class="text-purple-100" data-translate="ai-recommendation-subtitle">Get personalized crop suggestions for next month based on market trends</p>
+                            </div>
+                        </div>
+                        <button id="refreshRecommendation" class="p-3 bg-white bg-opacity-20 rounded-full hover:bg-opacity-30 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                                <path d="M21 3v5h-5"/>
+                                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                                <path d="M3 21v-5h5"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div id="recommendationContent" class="space-y-4">
+                        <!-- Loading State -->
+                        <div id="recommendationLoading" class="text-center py-8">
+                            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                            <p class="mt-2 text-purple-100" data-translate="analyzing-data">Analyzing market data...</p>
+                        </div>
+                        
+                        <!-- Recommendation Result -->
+                        <div id="recommendationResult" class="hidden">
+                            <div class="bg-white bg-opacity-10 rounded-xl p-6 backdrop-blur-sm">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-xl font-semibold" data-translate="recommended-crop">Recommended Crop</h3>
+                                    <span id="confidenceScore" class="px-3 py-1 bg-green-500 bg-opacity-80 rounded-full text-sm font-medium"></span>
+                                </div>
+                                <div class="flex items-center space-x-4 mb-4">
+                                    <div id="recommendedCropIcon" class="text-4xl"></div>
+                                    <div>
+                                        <h4 id="recommendedCropName" class="text-2xl font-bold"></h4>
+                                        <p id="recommendedCropReason" class="text-purple-100"></p>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                                        <div class="text-sm text-purple-200" data-translate="expected-profit">Expected Profit</div>
+                                        <div id="expectedProfit" class="text-xl font-bold"></div>
+                                    </div>
+                                    <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                                        <div class="text-sm text-purple-200" data-translate="expected-demand">Expected Demand</div>
+                                        <div id="expectedDemand" class="text-xl font-bold"></div>
+                                    </div>
+                                    <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                                        <div class="text-sm text-purple-200" data-translate="risk-level">Risk Level</div>
+                                        <div id="riskLevel" class="text-xl font-bold"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Demand Forecasting Section -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4" data-translate="demand-forecasting">Demand Forecasting</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Forecast Card 1 (High Demand) -->
+                    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500 hover:shadow-lg transition-shadow duration-300">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold" data-translate="tomatoes">Tomatoes</h3>
+                            <div class="flex items-center text-green-600">
+                                <span class="font-bold text-lg" data-translate="high-demand">High Demand</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up">
+                                    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+                                    <polyline points="16 7 22 7 22 13" />
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 mb-4" data-translate="tomatoes-desc">
+                            Expect strong demand over the next 3 weeks due to seasonal market shifts.
+                        </p>
+                        <button class="text-sm text-custom-green font-medium hover:underline focus:outline-none" data-translate="view-detailed-analysis">
+                            View Detailed Analysis →
+                        </button>
+                    </div>
+
+                    <!-- Forecast Card 2 (Medium Demand) -->
+                    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-yellow-500 hover:shadow-lg transition-shadow duration-300">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold" data-translate="cucumbers">Cucumbers</h3>
+                            <div class="flex items-center text-yellow-600">
+                                <span class="font-bold text-lg" data-translate="medium-demand">Medium Demand</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up">
+                                    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+                                    <polyline points="16 7 22 7 22 13" />
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 mb-4" data-translate="cucumbers-desc">
+                            Demand is stable. Consider staggered harvesting to maintain supply.
+                        </p>
+                        <button class="text-sm text-custom-green font-medium hover:underline focus:outline-none" data-translate="view-detailed-analysis">
+                            View Detailed Analysis →
+                        </button>
+                    </div>
+
+                    <!-- Forecast Card 3 (Low Demand) -->
+                    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500 hover:shadow-lg transition-shadow duration-300">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold" data-translate="lettuce">Lettuce</h3>
+                            <div class="flex items-center text-red-600">
+                                <span class="font-bold text-lg" data-translate="low-demand">Low Demand</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-down">
+                                    <polyline points="22 17 13.5 8.5 8.5 13.5 2 7" />
+                                    <polyline points="16 17 22 17 22 11" />
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 mb-4" data-translate="lettuce-desc">
+                            Oversupply is expected next month. Explore alternative distribution channels.
+                        </p>
+                        <button class="text-sm text-custom-green font-medium hover:underline focus:outline-none" data-translate="view-detailed-analysis">
+                            View Detailed Analysis →
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Actionable Recommendations Section -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4" data-translate="actionable-recommendations">Actionable Recommendations</h2>
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <ul class="divide-y divide-gray-200">
+                        <!-- Recommendation 1 -->
+                        <li class="p-6 flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="p-3 bg-custom-green rounded-full text-white">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-seedling">
+                                        <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5-1.1-1-2-2.2-2-3.5a2.5 2.5 0 0 1 5 0c0 1.4-.5 2.8-1.5 4-1.2 1.5-2.5 3.1-2.5 4.5 0 2.2 1.4 4 4 4" />
+                                        <path d="M20 12c0 2-3 5-3 5" />
+                                        <path d="M22 15c0 2-3 3-3 3" />
+                                        <path d="M11 20a7 7 0 0 1-7-7c0-2 1-3.9 3-5.5 1.1-1 2-2.2 2-3.5a2.5 2.5 0 0 1 5 0c0 1.4-.5 2.8-1.5 4-1.2 1.5-2.5 3.1-2.5 4.5 0 2.2 1.4 4 4 4" />
+                                        <path d="M4 12c0 2 3 5 3 5" />
+                                        <path d="M2 15c0 2 3 3 3 3" />
+                                        <path d="M14 19a5 5 0 0 0 5-5c0-1.5-1-2.9-2.5-4-1.1-1-2-2.2-2-3.5a2.5 2.5 0 0 0-5 0c0 1.4.5 2.8 1.5 4 1.2 1.5 2.5 3.1 2.5 4.5 0 2.2-1.4 4-4 4" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium" data-translate="planting-recommendation">Planting Recommendation</h4>
+                                    <p class="text-gray-600 text-sm" data-translate="planting-desc">Start planting corn now to capitalize on predicted demand in 4 months.</p>
+                                </div>
+                            </div>
+                            <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-semibold hover:bg-gray-300 transition-colors" data-translate="learn-more">
+                                Learn More
+                            </button>
+                        </li>
+
+                        <!-- Recommendation 2 -->
+                        <li class="p-6 flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="p-3 bg-custom-green rounded-full text-white">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package">
+                                        <path d="m7.5 4.27 9 5.15" />
+                                        <path d="M21 8.24v9.98" />
+                                        <path d="M3 8.24v9.98" />
+                                        <path d="M12 21.73 3 16.58V7.36L12 2.22l9 5.14v9.22z" />
+                                        <path d="m12 2.22 9 5.14" />
+                                        <path d="M12 2.22 3 7.36" />
+                                        <path d="m12 11.58-9-5.14" />
+                                        <path d="m12 11.58 9 5.14" />
+                                        <path d="M12 11.58v10.15" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium" data-translate="distribution-guidance">Distribution Guidance</h4>
+                                    <p class="text-gray-600 text-sm" data-translate="distribution-desc">Sell 60% of your tomato harvest to local grocers and 40% to wholesalers.</p>
+                                </div>
+                            </div>
+                            <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-semibold hover:bg-gray-300 transition-colors" data-translate="learn-more">
+                                Learn More
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal for details -->
+    <div id="modal" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden relative transform scale-95 opacity-0 transition-transform duration-300 ease-in-out">
+            <!-- Modal Header -->
+            <div class="modal-header-gradient px-6 py-4 text-white">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-white bg-opacity-20 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 19c-5 0-7-2-7-5s2-5 7-5 7 2 7 5-2 5-7 5z"/>
+                                <path d="M9 9c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2z"/>
+                                <path d="M15 9c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2z"/>
+                                <path d="M15 19c-5 0-7-2-7-5s2-5 7-5 7 2 7 5-2 5-7 5z"/>
+                            </svg>
+                        </div>
+                        <h3 id="modal-title" class="text-2xl font-bold"></h3>
+                    </div>
+                    <button id="closeModal" class="text-white hover:text-gray-200 transition-colors p-2 rounded-full hover:bg-white hover:bg-opacity-20">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+                </div>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-6 overflow-y-auto max-h-[60vh] modal-scrollbar">
+                <!-- Key Insights Section -->
+                <div class="mb-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-custom-green mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 11l3 3L22 4"/>
+                            <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+                        </svg>
+                        <span data-translate="key-insights">Key Insights</span>
+                    </h4>
+                    <div id="modal-insights" class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                        <p class="text-gray-700"></p>
+        </div>
+    </div>
+
+                <!-- Market Analysis Section -->
+                <div class="mb-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-custom-green mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 3v18h18"/>
+                            <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
+                        </svg>
+                        <span data-translate="market-analysis">Market Analysis</span>
+                    </h4>
+                    <div id="modal-analysis" class="bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
+                        <p class="text-gray-700"></p>
+                    </div>
+                </div>
+
+                <!-- Recommendations Section -->
+                <div class="mb-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-custom-green mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                        <span data-translate="recommendations">Recommendations</span>
+                    </h4>
+                    <div id="modal-recommendations" class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
+                        <p class="text-gray-700"></p>
+                    </div>
+                </div>
+
+                <!-- Risk Factors Section -->
+                <div class="mb-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-custom-green mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                        </svg>
+                        <span data-translate="risk-factors">Risk Factors</span>
+                    </h4>
+                    <div id="modal-risks" class="bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg">
+                        <p class="text-gray-700"></p>
+                    </div>
+                </div>
+
+                <!-- Price Trend Graph Section -->
+                <div class="mb-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 3v18h18"/>
+                            <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
+                        </svg>
+                        <span data-translate="price-trend">Price Trend (Last 12 Months)</span>
+                    </h4>
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <div class="relative h-80">
+                            <canvas id="priceChart" width="400" height="300"></canvas>
+                        </div>
+                        <div class="mt-4 text-sm text-gray-600 text-center">
+                            <span data-translate="price-note">*Prices shown are average market rates per kg</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                <div class="flex justify-between items-center">
+                    <div class="text-sm text-gray-500">
+                        <span class="font-medium" data-translate="last-updated">Last Updated:</span> <span id="modal-timestamp"></span>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button id="closeModalButton" class="px-6 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors font-medium" data-translate="close">
+                            Close
+                        </button>
+                        <button class="px-6 py-2 bg-custom-green text-white rounded-full font-semibold hover:bg-green-600 transition-colors shadow-lg" data-translate="take-action">
+                            Take Action
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
